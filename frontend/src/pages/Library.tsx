@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Search, LayoutGrid, List, Download, Trash2, FolderOpen } from "lucide-react"
 import PageTransition from "@/components/layout/PageTransition"
+import { Tilt } from '../components/motion-primitives/tilt'
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Badge } from "../components/ui/badge"
@@ -96,6 +97,11 @@ function Library() {
 
     const aVal = a[sortColumn]
     const bVal = b[sortColumn]
+
+    // Handle undefined values
+    if (aVal === undefined && bVal === undefined) return 0
+    if (aVal === undefined) return 1
+    if (bVal === undefined) return -1
 
     if (aVal < bVal) return sortDirection === "asc" ? -1 : 1
     if (aVal > bVal) return sortDirection === "asc" ? 1 : -1
@@ -404,38 +410,48 @@ function GridView({
     <div className="p-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {tracks.map((track) => (
-          <div
-            key={track.id}
-            className="group relative overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg"
-          >
-            <div className="aspect-square bg-gradient-to-br from-primary/20 to-accent/20 p-6">
-              <div className="flex h-full flex-col justify-between">
-                <div className="flex items-start justify-between">
-                  <Checkbox
-                    checked={selectedTracks.includes(track.id)}
-                    onCheckedChange={() => onSelectTrack(track.id)}
-                    className="bg-card"
-                  />
-                  <Badge variant="outline" className="text-xs">
-                    {track.source === "Spotify" ? "🎵" : "📺"}
-                  </Badge>
+          <Tilt key={track.id} rotationFactor={8} isRevese>
+            <div className="group relative overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg">
+              {/* Album Art */}
+              <div className="relative aspect-square overflow-hidden">
+                <img
+                  src={`https://picsum.photos/seed/${track.id}/400/400`}
+                  alt={`${track.title} album art`}
+                  className="h-full w-full object-cover"
+                />
+                {/* Overlay with badges */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent p-4">
+                  <div className="flex h-full flex-col justify-between">
+                    <div className="flex items-start justify-between">
+                      <Checkbox
+                        checked={selectedTracks.includes(track.id)}
+                        onCheckedChange={() => onSelectTrack(track.id)}
+                        className="bg-card/80 backdrop-blur-sm"
+                      />
+                      <Badge variant="outline" className="text-xs bg-card/80 backdrop-blur-sm">
+                        {track.source === "Spotify" ? "🎵" : "📺"}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1">
+                      <Badge variant="secondary" className="text-xs bg-card/80 backdrop-blur-sm">
+                        {track.format}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <Badge variant="secondary" className="text-xs">
-                    {track.format}
-                  </Badge>
+              </div>
+
+              {/* Track Info */}
+              <div className="p-4">
+                <h3 className="font-semibold text-card-foreground line-clamp-1">{track.title}</h3>
+                <p className="text-sm text-muted-foreground line-clamp-1">{track.artist}</p>
+                <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{track.duration}</span>
+                  <span>{track.fileSize}</span>
                 </div>
               </div>
             </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-card-foreground line-clamp-1">{track.title}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-1">{track.artist}</p>
-              <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-                <span>{track.duration}</span>
-                <span>{track.fileSize}</span>
-              </div>
-            </div>
-          </div>
+          </Tilt>
         ))}
       </div>
     </div>

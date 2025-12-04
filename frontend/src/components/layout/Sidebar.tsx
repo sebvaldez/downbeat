@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Settings, Library as LibraryIcon, FolderOpen, BarChart3, Music } from 'lucide-react'
+import { Home, Settings, Library as LibraryIcon, Music } from 'lucide-react'
 import { Button } from '../ui/button'
 import { cn } from '../../lib/utils'
 
