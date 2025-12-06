@@ -1,11 +1,13 @@
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
+import { SettingsModal } from './SettingsModal'
 import { useState } from 'react'
-import { Bell, Menu } from 'lucide-react'
+import { Bell, Menu, Settings } from 'lucide-react'
 import { Button } from '../ui/button'
 
 function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true) // Default to open
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -27,10 +29,21 @@ function Layout() {
             <h1 className="text-xl font-semibold text-card-foreground">Downbeat</h1>
           </div>
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Notifications */}
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="h-5 w-5 text-muted-foreground" />
+            </Button>
+
+            {/* Settings - NEW! */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <Settings className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </div>
         </header>
 
         {/* Page Content */}
@@ -38,6 +51,9 @@ function Layout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Settings Modal */}
+      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   )
 }
