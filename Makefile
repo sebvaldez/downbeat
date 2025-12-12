@@ -1,4 +1,4 @@
-.PHONY: dev clean-builds migrate-create migrate-up migrate-down migrate-status
+.PHONY: dev clean-builds migrate-create migrate-up migrate-down migrate-status migrate-reset
 
 # Start development environment
 dev:
@@ -24,3 +24,6 @@ migrate-down:
 # Check migration status
 migrate-status:
 	goose -dir ${MIGRATION_DIR} sqlite3 ${SQLITE_DB_PATH} status
+
+migrate-reset:
+	goose -dir ${MIGRATION_DIR} sqlite3 ${SQLITE_DB_PATH} reset
