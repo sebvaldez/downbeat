@@ -1,4 +1,7 @@
+.vscode
+.DS_Store
 build/bin
 node_modules
 frontend/dist
 notes.md
+*.dmg
