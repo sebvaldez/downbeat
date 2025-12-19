@@ -9,62 +9,49 @@ import (
 	"context"
 )
 
-const bulkUpsertSettings = `-- name: BulkUpsertSettings :exec
-INSERT INTO settings (key, value, updated_at)
-VALUES (?, ?, CURRENT_TIMESTAMP)
-ON CONFLICT (key)
-DO UPDATE SET
-    value = EXCLUDED.value,
-    updated_at = CURRENT_TIMESTAMP
-`
-
-type BulkUpsertSettingsParams struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-func (q *Queries) BulkUpsertSettings(ctx context.Context, arg BulkUpsertSettingsParams) error {
-	_, err := q.db.ExecContext(ctx, bulkUpsertSettings, arg.Key, arg.Value)
-	return err
-}
-
-const createOrUpdateSetting = `-- name: CreateOrUpdateSetting :exec
-INSERT INTO settings (key, value, updated_at)
-VALUES (?, ?, CURRENT_TIMESTAMP)
-ON CONFLICT (key)
-DO UPDATE SET
-    value = EXCLUDED.value,
-    updated_at = CURRENT_TIMESTAMP
-`
-
-type CreateOrUpdateSettingParams struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-func (q *Queries) CreateOrUpdateSetting(ctx context.Context, arg CreateOrUpdateSettingParams) error {
-	_, err := q.db.ExecContext(ctx, createOrUpdateSetting, arg.Key, arg.Value)
-	return err
-}
-
-const deleteSetting = `-- name: DeleteSetting :exec
+const deleteUserSetting = `-- name: DeleteUserSetting :exec
 DELETE FROM settings
 WHERE key = ?
 `
 
-func (q *Queries) DeleteSetting(ctx context.Context, key string) error {
-	_, err := q.db.ExecContext(ctx, deleteSetting, key)
+func (q *Queries) DeleteUserSetting(ctx context.Context, key string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserSetting, key)
 	return err
 }
 
-const getAllSettings = `-- name: GetAllSettings :many
-SELECT id, key, value, created_at, updated_at
-FROM settings
+const getUserSetting = `-- name: GetUserSetting :one
+SELECT
+    id, key, value, created_at, updated_at
+FROM
+    settings
+WHERE
+    key = ?
+LIMIT 1
+`
+
+func (q *Queries) GetUserSetting(ctx context.Context, key string) (Setting, error) {
+	row := q.db.QueryRowContext(ctx, getUserSetting, key)
+	var i Setting
+	err := row.Scan(
+		&i.ID,
+		&i.Key,
+		&i.Value,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const listUserSettings = `-- name: ListUserSettings :many
+SELECT
+    id, key, value, created_at, updated_at
+FROM
+    settings
 ORDER BY key
 `
 
-func (q *Queries) GetAllSettings(ctx context.Context) ([]Setting, error) {
-	rows, err := q.db.QueryContext(ctx, getAllSettings)
+func (q *Queries) ListUserSettings(ctx context.Context) ([]Setting, error) {
+	rows, err := q.db.QueryContext(ctx, listUserSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -92,21 +79,20 @@ func (q *Queries) GetAllSettings(ctx context.Context) ([]Setting, error) {
 	return items, nil
 }
 
-const getSettingByKey = `-- name: GetSettingByKey :one
-SELECT id, key, value, created_at, updated_at
-FROM settings
-WHERE key = ?
+const setUserSetting = `-- name: SetUserSetting :exec
+INSERT INTO settings (key, value, created_at, updated_at)
+VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT(key) DO UPDATE SET
+    value = EXCLUDED.value,
+    updated_at = CURRENT_TIMESTAMP
 `
 
-func (q *Queries) GetSettingByKey(ctx context.Context, key string) (Setting, error) {
-	row := q.db.QueryRowContext(ctx, getSettingByKey, key)
-	var i Setting
-	err := row.Scan(
-		&i.ID,
-		&i.Key,
-		&i.Value,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+type SetUserSettingParams struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+func (q *Queries) SetUserSetting(ctx context.Context, arg SetUserSettingParams) error {
+	_, err := q.db.ExecContext(ctx, setUserSetting, arg.Key, arg.Value)
+	return err
 }
